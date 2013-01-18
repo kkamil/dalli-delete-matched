@@ -29,17 +29,20 @@ ActiveSupport::Cache::DalliStore.class_eval do
   
   def delete_matched(matcher, options = nil)
     ret = true
+    ret_all = []
     deleted_keys = []
     keys = get_cache_keys
     keys.each do |key|
-      if ret && key.match(matcher)
-        deleted_keys << key if (ret = old_delete_entry(key, options))
+      if key.match(matcher)
+        ret_all << old_delete_entry(key, options)
+        deleted_keys << key
       end
     end
-    len = keys.length
-    keys -= deleted_keys
-    old_write_entry(CACHE_KEYS, keys.to_yaml, {}) if keys.length < len
-    ret
+    # CHANGED don't care if key was deleted
+    # len = keys.length
+    # keys -= deleted_keys
+    old_write_entry(CACHE_KEYS, keys.to_yaml, {}) # if keys.length < len
+    ret_all.all?
   end
 
 private
